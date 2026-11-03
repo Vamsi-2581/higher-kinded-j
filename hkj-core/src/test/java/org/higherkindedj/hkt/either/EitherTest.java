@@ -31,6 +31,75 @@ class EitherTest extends EitherTestBase {
   private final Either<String, Integer> rightInstance = Either.right(rightValue);
 
   @Nested
+  @DisplayName("fromOptional() Factory")
+  class FromOptionalFactoryTests {
+
+    @Test
+    @DisplayName("fromOptional() converts present values to Right and empty values to Left")
+    void convertsPresentAndEmptyOptionalsWithEagerError() {
+      Either<String, Integer> present = Either.fromOptional(Optional.of(42), "missing");
+      Either<String, Integer> empty = Either.fromOptional(Optional.empty(), "missing");
+
+      assertThatEither(present).isRight().hasRightNonNull().hasRight(42);
+      assertThatEither(empty).isLeft().hasLeftNonNull().hasLeft("missing");
+    }
+
+    @Test
+    @DisplayName("fromOptional() validates the optional and eager Left value")
+    void validatesEagerArguments() {
+      assertThatNullPointerException()
+          .isThrownBy(() -> Either.<String, Integer>fromOptional(null, "missing"))
+          .withMessage("optional for fromOptional cannot be null");
+      assertThatNullPointerException()
+          .isThrownBy(() -> Either.fromOptional(Optional.of(42), (String) null))
+          .withMessage("Either.fromOptional error cannot be null");
+    }
+
+    @Test
+    @DisplayName("fromOptional() calls the error supplier only when empty")
+    void callsSupplierOnlyForEmptyOptional() {
+      AtomicBoolean supplierCalled = new AtomicBoolean();
+      Either<String, Integer> present =
+          Either.fromOptional(
+              Optional.of(42),
+              () -> {
+                supplierCalled.set(true);
+                return "missing";
+              });
+
+      assertThatEither(present).isRight().hasRightNonNull().hasRight(42);
+      assertThat(supplierCalled).isFalse();
+
+      Either<String, Integer> empty =
+          Either.fromOptional(
+              Optional.empty(),
+              () -> {
+                supplierCalled.set(true);
+                return "missing";
+              });
+
+      assertThatEither(empty).isLeft().hasLeftNonNull().hasLeft("missing");
+      assertThat(supplierCalled).isTrue();
+    }
+
+    @Test
+    @DisplayName("fromOptional() validates the supplier and its result")
+    void validatesSupplierArgumentsAndResult() {
+      assertThatNullPointerException()
+          .isThrownBy(() -> Either.<String, Integer>fromOptional(null, () -> "missing"))
+          .withMessage("optional for fromOptional cannot be null");
+      assertThatNullPointerException()
+          .isThrownBy(
+              () ->
+                  Either.fromOptional(Optional.of(42), (java.util.function.Supplier<String>) null))
+          .withMessage("ifEmpty for fromOptional cannot be null");
+      assertThatNullPointerException()
+          .isThrownBy(() -> Either.fromOptional(Optional.empty(), () -> null))
+          .withMessage("ifEmpty must not return null");
+    }
+  }
+
+  @Nested
   @DisplayName("Factory Methods - Complete Coverage")
   class FactoryMethods {
 
