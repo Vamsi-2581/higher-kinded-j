@@ -8,6 +8,7 @@ import static org.higherkindedj.hkt.assertions.EitherAssert.assertThatEither;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import org.higherkindedj.hkt.exception.KindUnwrapException;
 import org.higherkindedj.hkt.test.assertions.ValidationTestBuilder;
 import org.higherkindedj.hkt.test.fixtures.TestFunctions;
@@ -91,7 +92,7 @@ class EitherTest extends EitherTestBase {
       assertThatNullPointerException()
           .isThrownBy(
               () ->
-                  Either.fromOptional(Optional.of(42), (java.util.function.Supplier<String>) null))
+                  Either.fromOptional(Optional.of(42), (Supplier<String>) null))
           .withMessage("ifEmpty for fromOptional cannot be null");
       assertThatNullPointerException()
           .isThrownBy(() -> Either.fromOptional(Optional.empty(), () -> null))
